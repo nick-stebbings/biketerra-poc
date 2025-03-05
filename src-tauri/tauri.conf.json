@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "biketerra-poc",
+  "version": "0.1.0",
+  "identifier": "com.biketerra-poc.app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "url": "https://biketerra.com",
+        "width": 1200,
+        "height": 800,
+        "title": "Biketerra"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' https://biketerra.com; connect-src 'self' https://biketerra.com; script-src 'self' 'unsafe-inline' https://biketerra.com;"
+    }
+},
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
