@@ -1,16 +1,13 @@
 [package]
 name = "biketerra-poc"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Proof of concept for basic BTLE peripheral discovery and logging to a Tauri external webview"
 authors = ["you"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "biketerra_poc_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
@@ -21,11 +18,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 btleplug = "0.11.7"
-log = "0.4.26"
-tokio = "1.43.0"
-uuid = { version = "1.15.1", features = ["v4"] }
 thiserror = "2.0.12"
 futures = "0.3.31"
 
