@@ -1,7 +1,7 @@
-# Tauri + Vanilla TS
+# POC for streaming Bluetooth scanning events back to an external webview
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Typescript.
+Instructions (assuming pnpm is installed globally, otherwise use npm):
 
-## Recommended IDE Setup
+`pnpm i`
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+`pnpm tauri dev`
