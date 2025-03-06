@@ -1,16 +1,24 @@
 mod bluetooth;
 mod models;
 mod error;
-use tauri::Manager;
+mod event;
+use tauri::{Manager, Listener};
 
 const BT_CLIENT_INIT: &str = r#"class BluetoothClient {
       constructor() {
-        console.log("JS BluetoothClient instantiated")
+        console.log("JS BluetoothClient instantiated and listening to scan events");
+        window.__TAURI__.event.listen('scan-start', (event) => {
+            console.log(event);
+        });
+        window.__TAURI__.event.listen('scan-device-found', (event) => {
+            console.log(event);
+        });
       }
 
       // Start scanning for devices
       async scan(filterUuids = []) {
         if (window.__TAURI__) {
+          console.log("Scanning...");
           return window.__TAURI__.core.invoke('scan', {
             payload: {
               filterUuids

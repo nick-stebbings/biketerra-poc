@@ -1,11 +1,19 @@
-use btleplug::api::{bleuuid::uuid_from_u16, Central, Manager as _, Peripheral as _, ScanFilter, WriteType};
+use std::thread::sleep;
+use std::time::{Duration, Instant};
+
+use btleplug::api::{
+    Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter
+};
 use btleplug::platform::{Adapter, Manager as BTManager, Peripheral, PeripheralId};
 
 use serde::de::DeserializeOwned;
-use tauri::{AppHandle, Manager, Runtime};
 use tauri::plugin::PluginApi;
-use crate::models::{ScanRequest, ScanResponse};
+use tauri::{AppHandle, Emitter, Manager, Runtime};
+
 use crate::error::{Error, Result};
+use crate::event::{DeviceInfo, Payload};
+use crate::models::{ScanRequest, ScanResponse};
+use futures::stream::StreamExt;
 
 pub fn init_plugin<R: Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new("bluetooth")
@@ -27,8 +35,11 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
 }
 
 impl<R: Runtime> Bluetooth<R> {
-    pub async fn scan(&self, payload: ScanRequest) -> Result<ScanResponse> {
+    pub async fn scan(&self, app: AppHandle<R>, payload: ScanRequest) -> Result<ScanResponse> {
         println!("Scan parameters {:?}", payload);
+
+        let main_window = app.get_webview_window("main").unwrap();
+
         let manager = BTManager::new()
             .await
             .map_err(|e| Error::Bluetooth(e.to_string()))?;
@@ -39,15 +50,48 @@ impl<R: Runtime> Bluetooth<R> {
             .map_err(|e| Error::Bluetooth(e.to_string()))?;
 
         let central = adapters.into_iter().next().ok_or(Error::NoAdapter)?;
-        list_peripherals(central).await;
+
+        let mut events = central.events().await?;
+
+        central.start_scan(ScanFilter::default()).await?;
+
+        main_window
+            .emit(
+                "scan-start",
+                Payload {
+                    message: "Started scanning for bluetooth devices...".into(),
+                },
+            )
+            .unwrap();
+
+        let scan_duration = Duration::from_secs(10);
+        let start_time = Instant::now();
+
+        while let Some(event) = events.next().await {
+            if Instant::now().duration_since(start_time) >= scan_duration {
+                break;
+            }
+
+            if let CentralEvent::DeviceDiscovered(id) = event {
+                let peripheral = central.peripheral(&id).await?;
+                let properties = peripheral.properties().await?;
+                let name = properties
+                    .and_then(|p| p.local_name)
+                    .map(|local_name| format!("Name: {local_name}"))
+                    .unwrap_or_default();
+                main_window
+                    .emit(
+                        "scan-device-found",
+                        DeviceInfo {
+                            name,
+                            id: id.to_string()
+                        },
+                    )
+                    .unwrap();
+            }
+        }
 
         Ok(ScanResponse { success: true })
-    }
-}
-
-async fn list_peripherals(central: Adapter) -> () {
-    for p in central.peripherals().await.unwrap() {
-        println!("{:?}", p);
     }
 }
 
@@ -63,11 +107,10 @@ impl<R: Runtime, T: Manager<R>> BluetoothExt<R> for T {
     }
 }
 
-
 #[tauri::command]
 pub(crate) async fn scan<R: Runtime>(
     app: AppHandle<R>,
     payload: ScanRequest,
 ) -> crate::error::Result<ScanResponse> {
-    app.bluetooth().scan(payload).await
+    app.bluetooth().scan(app.clone(), payload).await
 }

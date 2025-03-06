@@ -9,7 +9,7 @@ pub enum Error {
     #[error("Bluetooth error: {0}")]
     Bluetooth(String),
     #[error("No Bluetooth adapter found")]
-    NoAdapter,
+    NoAdapter
 }
 
 impl Serialize for Error {
@@ -18,5 +18,11 @@ impl Serialize for Error {
         S: Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
+impl From<btleplug::Error> for Error {
+    fn from(val: btleplug::Error) -> Self {
+        Self::Bluetooth(val.to_string())
     }
 }

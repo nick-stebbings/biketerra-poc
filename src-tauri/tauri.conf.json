@@ -21,6 +21,7 @@
     ],
     "security": {
       "csp": "default-src 'self' https://biketerra.com; connect-src 'self' https://biketerra.com; script-src 'self' 'unsafe-inline' https://biketerra.com;"
+      
     }
 },
   "bundle": {
@@ -33,5 +34,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "event": {
+      "permission": ["listen"]
+    }
   }
 }

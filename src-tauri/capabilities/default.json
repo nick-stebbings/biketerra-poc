@@ -3,8 +3,13 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": ["main"],
+  "webviews": ["main"],
+  "remote": {
+    "urls": ["https://biketerra.com"]
+  },
   "permissions": [
     "core:default",
-    "opener:default"
+    "opener:default",
+    "core:event:default"
   ]
 }
