@@ -1,22 +1,25 @@
 import { invoke } from "@tauri-apps/api/core";
 
-let greetInputEl: HTMLInputElement | null;
-let greetMsgEl: HTMLElement | null;
+class BluetoothClient {
+  constructor() {
+    console.log("constructed")
+  }
 
-async function greet() {
-  if (greetMsgEl && greetInputEl) {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsgEl.textContent = await invoke("greet", {
-      name: greetInputEl.value,
-    });
+  // Start scanning for devices
+  async scan(filterUuids = []) {
+    if (window.__TAURI__) {
+      return window.__TAURI__.invoke('scan', {filter_uuids: filterUuids});
+    }
+    return Promise.reject('Tauri API not available');
   }
 }
 
+window.__TAURI__.btClient = new BluetoothClient();
+
 window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
+  console.log('hey')
+  window.__TAURI__.btClient.scan().then((msg) => {
+
+    console.log(msg)
   });
 });

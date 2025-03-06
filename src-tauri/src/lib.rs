@@ -1,14 +1,40 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+mod bluetooth;
+mod models;
+mod error;
+use tauri::Manager;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+const BT_CLIENT_INIT: &str = r#"class BluetoothClient {
+      constructor() {
+        console.log("JS BluetoothClient instantiated")
+      }
+
+      // Start scanning for devices
+      async scan(filterUuids = []) {
+        if (window.__TAURI__) {
+          return window.__TAURI__.core.invoke('scan', {
+            payload: {
+              filterUuids
+            }
+          });
+        }
+        return Promise.reject('Tauri API not available');
+      }
+    }
+
+    window.btClient = new BluetoothClient();
+    window.btClient.scan();
+"#;
+
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            let webview = app.get_webview_window("main").unwrap();
+            webview.eval(BT_CLIENT_INIT)?;
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .plugin(bluetooth::init_plugin())
+        .invoke_handler(tauri::generate_handler![bluetooth::scan])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
